@@ -252,8 +252,7 @@ func memberLeave(c *gin.Context) {
 				return err
 			}
 
-			convId := generateConvId(userId, request.ID)
-			err = tx.Where("conv_id = ?", convId).Delete(&Msg{}).Error
+			err = tx.Where("conv_id = ?", request.ID).Delete(&Msg{}).Error
 			if err != nil {
 				return err
 			}
