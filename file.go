@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -101,7 +100,9 @@ func upFileHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"uuid": fmt.Sprintf("%s.%dkb.%s", safeName, fileSize, fileHeader.Filename),
+		"uuid": safeName,
+		"size": fileSize,
+		"name": fileHeader.Filename,
 		"type": fileType,
 	})
 }
