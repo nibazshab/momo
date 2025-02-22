@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -36,22 +37,20 @@ func groupListAsMember(c *gin.Context) {
 	})
 }
 
-// post /api/v1/group/info
+// get /api/v1/group/info/:id
 func groupInfo(c *gin.Context) {
 	userId := c.MustGet("userId").(int)
 
-	var request struct {
-		ID int `json:"id" binding:"required"`
-	}
-	err := c.ShouldBindJSON(&request)
+	stringGroupId := c.Param("id")
+	groupId, err := strconv.Atoi(stringGroupId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求格式无效",
+			"error": "id 必须是整数",
 		})
 		return
 	}
 
-	groupName, err := getNameById(&Group{}, request.ID)
+	groupName, err := getNameById(&Group{}, groupId)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -68,7 +67,7 @@ func groupInfo(c *gin.Context) {
 	var isMember bool
 	var count int64
 	err = db.Model(&GroupMember{}).
-		Where("group_id = ? AND user_id = ?", request.ID, userId).
+		Where("group_id = ? AND user_id = ?", groupId, userId).
 		Count(&count).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -79,7 +78,7 @@ func groupInfo(c *gin.Context) {
 	isMember = count > 0
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":        request.ID,
+		"id":        groupId,
 		"name":      groupName,
 		"is_member": isMember,
 	})
@@ -146,24 +145,22 @@ func (g *Group) AfterCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-// post /api/v1/group/join
+// get /api/v1/group/join/:id
 func memberJoin(c *gin.Context) {
 	userId := c.MustGet("userId").(int)
 
-	var request struct {
-		ID int `json:"id" binding:"required"`
-	}
-	err := c.ShouldBindJSON(&request)
+	stringGroupId := c.Param("id")
+	groupId, err := strconv.Atoi(stringGroupId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求格式无效",
+			"error": "id 必须是整数",
 		})
 		return
 	}
 
 	var count int64
 	err = db.Model(&Group{}).
-		Where("id = ?", request.ID).
+		Where("id = ?", groupId).
 		Count(&count).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -181,7 +178,7 @@ func memberJoin(c *gin.Context) {
 
 	var existing int64
 	err = db.Model(&GroupMember{}).
-		Where("group_id = ? AND user_id = ?", request.ID, userId).
+		Where("group_id = ? AND user_id = ?", groupId, userId).
 		Count(&existing).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -198,7 +195,7 @@ func memberJoin(c *gin.Context) {
 	}
 
 	member := GroupMember{
-		GroupId: request.ID,
+		GroupId: groupId,
 		UserId:  userId,
 	}
 
@@ -215,23 +212,21 @@ func memberJoin(c *gin.Context) {
 	})
 }
 
-// post /api/v1/group/leave
+// get /api/v1/group/leave/:id
 func memberLeave(c *gin.Context) {
 	userId := c.MustGet("userId").(int)
 
-	var request struct {
-		ID int `json:"id" binding:"required"`
-	}
-	err := c.ShouldBindJSON(&request)
+	stringGroupId := c.Param("id")
+	groupId, err := strconv.Atoi(stringGroupId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求格式无效",
+			"error": "id 必须是整数",
 		})
 		return
 	}
 
 	var group Group
-	err = db.Select("owner_id").First(&group, "id = ?", request.ID).Error
+	err = db.Select("owner_id").First(&group, "id = ?", groupId).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -247,17 +242,17 @@ func memberLeave(c *gin.Context) {
 
 	err = db.Transaction(func(tx *gorm.DB) error {
 		if group.OwnerId == userId {
-			err = tx.Delete(&Group{}, "id = ?", request.ID).Error
+			err = tx.Delete(&Group{}, "id = ?", groupId).Error
 			if err != nil {
 				return err
 			}
 
-			err = tx.Where("conv_id = ?", request.ID).Delete(&Msg{}).Error
+			err = tx.Where("conv_id = ?", groupId).Delete(&Msg{}).Error
 			if err != nil {
 				return err
 			}
 		} else {
-			result := tx.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", request.ID, userId)
+			result := tx.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", groupId, userId)
 
 			if result.Error != nil {
 				return result.Error

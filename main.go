@@ -34,7 +34,7 @@ func run() {
 	v1.GET("/files/:filename", downFileHandler)
 
 	user := v1.Group("user")
-	user.GET("/me", userOwnInfo)
+	user.GET("/info/me", userOwnInfo)
 	user.GET("/lists", userList)
 	user.GET("/logout", userLogout)
 	user.POST("/rename", resetName)
@@ -42,10 +42,10 @@ func run() {
 
 	group := v1.Group("group")
 	group.GET("/lists", groupListAsMember)
-	group.POST("/info", groupInfo)
+	group.GET("/info/:id", groupInfo)
 	group.POST("/create", groupCreate)
-	group.POST("/join", memberJoin)
-	group.POST("/leave", memberLeave)
+	group.GET("/join/:id", memberJoin)
+	group.GET("/leave/:id", memberLeave)
 
 	if err := r.Run(":8080"); err != nil {
 		panic("[err]" + err.Error())

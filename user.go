@@ -131,7 +131,7 @@ func userRegister(c *gin.Context) {
 	})
 }
 
-// get /api/v1/user/me
+// get /api/v1/user/info/me
 func userOwnInfo(c *gin.Context) {
 	userId := c.MustGet("userId").(int)
 
@@ -178,7 +178,7 @@ func userList(c *gin.Context) {
 	})
 }
 
-// post /api/v1/user/logout
+// get /api/v1/user/logout
 func userLogout(c *gin.Context) {
 	c.SetCookie(
 		"session_id",

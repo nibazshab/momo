@@ -52,7 +52,7 @@ type GroupMember struct {
 }
 
 type File struct {
-	UUID         string `json:"uuid" gorm:"primaryKey"`
+	UUID         string `json:"uuid" gorm:"primaryKey;size:36"`
 	OriginalName string `json:"original_name" gorm:"not null"`
 	Type         int    `json:"type" gorm:"not null"`
 	Size         int64  `json:"size" gorm:"not null"`
