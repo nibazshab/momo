@@ -78,7 +78,6 @@ func groupInfo(c *gin.Context) {
 	isMember = count > 0
 
 	c.JSON(http.StatusOK, gin.H{
-		"id":        groupId,
 		"name":      groupName,
 		"is_member": isMember,
 	})
