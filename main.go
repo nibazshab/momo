@@ -36,7 +36,7 @@ func run() {
 	user := v1.Group("user")
 	user.GET("/me", userOwnInfo)
 	user.GET("/lists", userList)
-	user.POST("/logout", userLogout)
+	user.GET("/logout", userLogout)
 	user.POST("/rename", resetName)
 	user.POST("/repassword", resetPassword)
 
