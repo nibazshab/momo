@@ -16,7 +16,7 @@ var db *gorm.DB
 type User struct {
 	ID       int    `json:"id" gorm:"primaryKey"`
 	Name     string `json:"name" gorm:"not null"`
-	Password string `json:"password" gorm:"size:32;not null"`
+	Password string `json:"password" gorm:"size:64;not null"`
 }
 
 type Session struct {

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"net/http"
@@ -292,7 +292,7 @@ func validateUserId(id int) bool {
 }
 
 func hashPassword(password string) string {
-	return fmt.Sprintf("%x", md5.Sum([]byte(password)))
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(password)))
 }
 
 func checkPassword(input, storedHash string) bool {
