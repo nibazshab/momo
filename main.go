@@ -72,8 +72,20 @@ func run() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("[err]", err)
+	err := srv.Shutdown(ctx)
+	if err != nil {
+		log.Fatal("[err]", err.Error())
+	}
+
+	_db, err := db.DB()
+	if err != nil {
+		log.Fatal("[err]", err.Error())
+		return
+	}
+	err = _db.Close()
+	if err != nil {
+		log.Fatal("[err]", err.Error())
+		return
 	}
 }
 

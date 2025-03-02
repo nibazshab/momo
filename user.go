@@ -72,7 +72,8 @@ func userRegister(c *gin.Context) {
 		Name     string `json:"name" binding:"required"`
 		Password string `json:"password" binding:"required"`
 	}
-	if err := c.ShouldBindJSON(&newUser); err != nil {
+	err := c.ShouldBindJSON(&newUser)
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "请求格式无效",
 		})
@@ -94,7 +95,7 @@ func userRegister(c *gin.Context) {
 		Password: hashedPassword,
 	}
 
-	err := db.Create(&user).Error
+	err = db.Create(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			c.JSON(http.StatusConflict, gin.H{
