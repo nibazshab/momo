@@ -75,6 +75,9 @@ func initDb() {
 
 	var err error
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+		//NamingStrategy: schema.NamingStrategy{
+		//	TablePrefix: "momo_",
+		//},
 		Logger: logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags),
 			logger.Config{
