@@ -61,7 +61,7 @@ func run() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal("[err]", err.Error())
+			log.Fatal("[err]", err)
 		}
 	}()
 
@@ -74,18 +74,16 @@ func run() {
 
 	err := srv.Shutdown(ctx)
 	if err != nil {
-		log.Fatal("[err]", err.Error())
+		log.Fatal("[err]", err)
 	}
 
 	_db, err := db.DB()
 	if err != nil {
-		log.Fatal("[err]", err.Error())
-		return
+		log.Fatal("[err]", err)
 	}
 	err = _db.Close()
 	if err != nil {
-		log.Fatal("[err]", err.Error())
-		return
+		log.Fatal("[err]", err)
 	}
 }
 
