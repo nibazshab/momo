@@ -23,13 +23,16 @@ func run() {
 	r := gin.Default()
 	r.Use(Cors())
 
-	r.GET("/", indexPage)
-	r.GET("/login", loginPage)
-	r.GET("/register", registerPage)
-	r.GET("/favicon.ico", getFavicon)
-	r.GET("/image/:file", staticFileHandler("image"))
-	r.GET("/js/*file", staticFileHandler("js"))
-	r.GET("/css/:file", staticFileHandler("css"))
+	page := r.Group("/")
+	page.Use(cacheControl())
+	page.GET("/", indexPage)
+	page.GET("/login", loginPage)
+	page.GET("/register", registerPage)
+	page.GET("/favicon.ico", favicon)
+	page.GET("/image/:file", staticFileHandler("image"))
+	page.GET("/js/*file", staticFileHandler("js"))
+	page.GET("/css/:file", staticFileHandler("css"))
+
 	r.POST("/login", userLogin)
 	r.POST("/register", userRegister)
 

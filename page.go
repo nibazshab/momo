@@ -46,17 +46,20 @@ func checkSession(c *gin.Context, redirectPath string, should bool) bool {
 	return false
 }
 
-func getFavicon(c *gin.Context) {
+func favicon(c *gin.Context) {
 	c.FileFromFS("web/favicon.ico", http.FS(web))
-}
-
-func getStaticFile(c *gin.Context, prefix string) {
-	file := c.Param("file")
-	c.FileFromFS(fmt.Sprintf("web/%s/%s", prefix, file), http.FS(web))
 }
 
 func staticFileHandler(prefix string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		getStaticFile(c, prefix)
+		file := c.Param("file")
+		c.FileFromFS(fmt.Sprintf("web/%s/%s", prefix, file), http.FS(web))
+	}
+}
+
+func cacheControl() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=3600")
+		c.Next()
 	}
 }
