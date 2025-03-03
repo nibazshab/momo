@@ -329,7 +329,7 @@ func validateSession(sessionId string) (int, bool) {
 	return session.UserId, true
 }
 
-func getNameById(model interface{}, id int) (name string, err error) {
+func getNameById(model any, id int) (name string, err error) {
 	err = db.Select("name").
 		First(model, "id = ?", id).
 		Scan(&name).Error
