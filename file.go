@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ const (
 func initDir() {
 	err := os.MkdirAll("attachments", 0o755)
 	if err != nil {
-		panic("[err]" + err.Error())
+		log.Fatal("[err]", err)
 	}
 }
 

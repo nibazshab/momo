@@ -90,7 +90,7 @@ func initDb() {
 		TranslateError: true,
 	})
 	if err != nil {
-		panic("[err]" + err.Error())
+		log.Fatal("[err]", err)
 	}
 
 	err = db.AutoMigrate(
@@ -101,6 +101,6 @@ func initDb() {
 		&File{},
 	)
 	if err != nil {
-		panic("[err]" + err.Error())
+		log.Fatal("[err]", err)
 	}
 }
