@@ -78,12 +78,13 @@ func initDb() {
 		//NamingStrategy: schema.NamingStrategy{
 		//	TablePrefix: "momo_",
 		//},
+		// Logger: logger.Default.LogMode(logger.Silent),
 		Logger: logger.New(
 			log.New(os.Stdout, "\r\n", log.LstdFlags),
 			logger.Config{
 				SlowThreshold:             time.Second,
 				LogLevel:                  logger.Info,
-				IgnoreRecordNotFoundError: true,
+				IgnoreRecordNotFoundError: false,
 				Colorful:                  true,
 			},
 		),
