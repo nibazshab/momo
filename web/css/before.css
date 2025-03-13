@@ -1,0 +1,110 @@
+body,
+html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+img,
+br {
+    user-select: none;
+}
+
+.bg-top {
+    background-color: #5682a3;
+    height: 34%;
+}
+
+.bg-bottom {
+    background-color: #e7ebf0;
+    height: 66%;
+}
+
+.box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.bottom {
+    background-color: #fff;
+    padding: 20px 40px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 1px #5682a3;
+    width: 100%;
+    max-width: 290px;
+    color: #444;
+}
+
+.login {
+    height: 364px;
+}
+
+.register{
+    height: 454px;
+}
+
+.bottom h3 {
+    margin-bottom: 20px;
+}
+
+.bottom p {
+    color: #777;
+    font-size: 14px;
+}
+
+.bottom a {
+    color: #5682a3;
+    text-decoration: none;
+}
+
+.bottom label {
+    font-size: 15px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.bottom input {
+    width: 95%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.bottom input:focus {
+    outline: none;
+    border: 1px solid #3390ec;
+}
+
+.top {
+    margin-bottom: 20px;
+    color: #fff;
+    display: flex;
+    width: 100%;
+}
+
+.top .left {
+    display: flex;
+}
+
+.top img {
+    width: 30px;
+    margin-right: 20px;
+    margin-left: 8px;
+}
+
+.top .right {
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.top .svg-inline--fa {
+    margin-left: 10px;
+}

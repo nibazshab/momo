@@ -1,0 +1,105 @@
+.sidebar {
+    width: 25%;
+    background-color: #ffffff;
+    padding: 10px;
+}
+
+.sidebar .top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 10px 20px 10px;
+    font-weight: bold;
+}
+
+.sidebar .top div {
+    align-items: center;
+    justify-content: center;
+    padding: 15px 20px;
+    color: #000;
+    font-size: 14px;
+    transition: 0.3s ease;
+    text-align: center;
+    user-select: none;
+    cursor: pointer;
+}
+
+.sidebar .top div:hover,
+.sidebar .top div.active {
+    border-radius: 10px;
+    background-color: #f4f4f5;
+}
+
+.sidebar .top .svg-inline--fa {
+    margin-left: 5px;
+}
+
+.group-list,
+.setting-list,
+.user-list {
+    display: none;
+    margin-top: 20px;
+    overflow-y: auto;
+    height: 85%;
+    max-height: 85vh;
+}
+
+.setting-list::-webkit-scrollbar,
+.user-list::-webkit-scrollbar {
+    display: none;
+}
+
+.group-item,
+.setting-item,
+.user-item {
+    align-items: center;
+    display: flex;
+    padding: 15px;
+    margin-bottom: 5px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.group-item:hover,
+.setting-item:hover,
+.user-item:hover {
+    border-radius: 10px;
+    background-color: #f4f4f5;
+}
+
+.group-item.selected,
+.setting-item.selected,
+.user-item.selected {
+    background-color: #3390ec;
+    border-radius: 10px;
+    color: white;
+}
+
+.group-item .svg-inline--fa,
+.user-item .svg-inline--fa {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 20px;
+}
+
+.group-item .info p,
+.setting-item p,
+.user-item .info p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.user-item .info .user-id {
+    color: #b1b3b5;
+}
+
+.setting-item p {
+    font-size: 15px;
+}
+
+.setting-item .svg-inline--fa {
+    width: 15px;
+    margin: 0 30px 0 10px;
+}

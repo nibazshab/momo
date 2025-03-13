@@ -1,0 +1,129 @@
+.center {
+    align-items: center;
+}
+
+.setting-joinGroup,
+.setting-createGroup,
+.setting-repassword,
+.setting-rename,
+.setting-whoami {
+    margin-top: 8%;
+    width: 300px;
+}
+
+.setting-joinGroup h2,
+.setting-createGroup h2,
+.setting-repassword h2,
+.setting-whoami h2 {
+    margin-bottom: 70px;
+}
+
+.setting-joinGroup input,
+.setting-createGroup input,
+.setting-repassword input,
+.setting-rename input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+.setting-joinGroup input:focus,
+.setting-createGroup input:focus,
+.setting-repassword input:focus,
+.setting-rename input:focus {
+    border-color: #3390ec;
+    outline: none;
+}
+
+.setting-joinGroup button,
+.setting-createGroup button,
+.setting-repassword button,
+.setting-rename button {
+    margin-top: 40px;
+    padding: 10px 25px;
+    background-color: #3390ec;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+}
+
+.setting-joinGroup button:hover,
+.setting-createGroup button:hover,
+.setting-repassword button:hover,
+.setting-rename button:hover {
+    background-color: #1b6bc0;
+}
+
+.setting-joinGroup button:active,
+.setting-createGroup button:active,
+.setting-repassword button:active,
+.setting-rename button:active {
+    background-color: #1b6bc0;
+}
+
+.setting-whoami p {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.setting-rename h2 {
+    margin-bottom: 50px;
+}
+
+.setting-rename p {
+    margin-bottom: 20px;
+}
+
+.setting-joinGroup #setting-joinGroup-button {
+    display: none;
+}
+
+.setting-logout {
+    margin-top: 20%;
+}
+
+.setting-logout button {
+    margin-top: 40px;
+    padding: 13px 30px;
+    background-color: #3390ec;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    background-color: #D85D5D;
+}
+
+.setting-logout button:hover {
+    background-color: #bc4b4b;
+}
+
+.setting-logout button:active {
+    background-color: #bc4b4b;
+}
+
+.setting-about {
+    margin-top: 10%;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    user-select: none;
+}
+
+.setting-about img {
+    width: 100px;
+}
+
+.setting-about h1 {
+    margin-top: 40px;
+    margin-bottom: 80px;
+}
+
+.setting-about p {
+    font-size: small;
+    color: #777777;
+}
