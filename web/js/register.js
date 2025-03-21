@@ -56,7 +56,6 @@ nextStep.addEventListener('click', function () {
             }
         })
         .then(data => {
-
             console.log("Successfully logged in!", data);
         })
         .catch(error => {

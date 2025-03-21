@@ -38,7 +38,6 @@ function renderList(containerId, data, itemType) {
 
             icon.className = 'fa-solid fa-user';
         } else {
-
             listItem.setAttribute('data-owner', item.owner_id);
             icon.className = 'fa-solid fa-user-group';
         }

@@ -244,10 +244,11 @@ function genAboutPage() {
     form.innerHTML = `
         <img src="image/logo.png">
         <h1>Momo Web</h1>
-        <p>Copyright <i class="fa-regular fa-copyright"></i> 2024-2025 Momo.
+        <p>Copyright <i class="fa-regular fa-copyright"></i> 2024-2025 Momo University.
             <br>
             All Rights Reserved.
         </p>
+        <p>Maintainer Momo</p>
     `;
     return form;
 }

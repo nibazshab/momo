@@ -25,6 +25,8 @@ func run() {
 	r := gin.Default()
 	r.Use(Cors())
 
+	routesAdmin(r)
+
 	page := r.Group("/")
 	page.Use(cacheControl())
 	page.GET("/", indexPage)
@@ -33,7 +35,7 @@ func run() {
 	page.GET("/favicon.ico", favicon)
 	page.GET("/image/:file", staticFileHandler("image"))
 	page.GET("/js/*file", staticFileHandler("js"))
-	page.GET("/css/:file", staticFileHandler("css"))
+	page.GET("/css/*file", staticFileHandler("css"))
 
 	r.POST("/login", userLogin)
 	r.POST("/register", userRegister)
@@ -54,10 +56,12 @@ func run() {
 
 	group := v1.Group("group")
 	group.GET("/lists", groupListAsMember)
+	group.GET("/member/:id", groupMember)
 	group.GET("/info/:id", groupInfo)
 	group.POST("/create", groupCreate)
 	group.GET("/join/:id", memberJoin)
 	group.GET("/leave/:id", memberLeave)
+	group.GET("/remove/:gid/:mid", memberRemove)
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -96,13 +100,16 @@ func Cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
 		c.Header("Access-Control-Allow-Origin", origin)
+
 		c.Header("Access-Control-Allow-Credentials", "true")
 		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
 		c.Header("Access-Control-Allow-Headers", "Content-Type, Authorization, Token")
+
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusOK)
 			return
 		}
+
 		c.Next()
 	}
 }

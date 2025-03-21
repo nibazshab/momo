@@ -23,7 +23,7 @@ type Session struct {
 	ID        string    `json:"id" gorm:"primaryKey;size:36"`
 	UserId    int       `json:"user_id"`
 	ExpiresAt time.Time `json:"expires_at" gorm:"not null"`
-	User      User
+	User      User      `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type Msg struct {
@@ -35,7 +35,7 @@ type Msg struct {
 	FmtTime  string    `json:"time" gorm:"not null"`
 	Text     string    `json:"text" gorm:"not null"`
 	Type     int       `json:"type" gorm:"not null"`
-	User     User
+	User     User      `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type Group struct {
@@ -56,8 +56,8 @@ type File struct {
 	OriginalName string `json:"original_name" gorm:"not null"`
 	Type         int    `json:"type" gorm:"not null"`
 	Size         int64  `json:"size" gorm:"not null"`
-	UserId       int
-	User         User
+	UserId       int    `json:"user_id"`
+	User         User   `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 const (

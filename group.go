@@ -37,6 +37,39 @@ func groupListAsMember(c *gin.Context) {
 	})
 }
 
+// get /api/v1/group/member/:id
+func groupMember(c *gin.Context) {
+	stringGroupId := c.Param("id")
+	groupId, err := strconv.Atoi(stringGroupId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "id 必须是整数",
+		})
+		return
+	}
+
+	var users []struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	err = db.Model(&GroupMember{}).
+		Select("users.id, users.name").
+		Joins("JOIN users ON group_members.user_id = users.id").
+		Where("group_members.group_id = ?", groupId).
+		Scan(&users).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "检索用户失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"users": users,
+	})
+}
+
 // get /api/v1/group/info/:id
 func groupInfo(c *gin.Context) {
 	userId := c.MustGet("userId").(int)
@@ -278,5 +311,61 @@ func memberLeave(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "退出群组成功",
+	})
+}
+
+// get /api/v1/group/remove/:gid/:mid
+func memberRemove(c *gin.Context) {
+	userId := c.MustGet("userId").(int)
+
+	stringGroupId := c.Param("gid")
+	stringMemberId := c.Param("mid")
+	groupId, err := strconv.Atoi(stringGroupId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "id 必须是整数",
+		})
+		return
+	}
+	memberId, err := strconv.Atoi(stringMemberId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "id 必须是整数",
+		})
+		return
+	}
+
+	if memberId == userId {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "不能移除自己",
+		})
+		return
+	}
+
+	var group Group
+	err = db.Select("owner_id").First(&group, "id = ?", groupId).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "群组不存在",
+			})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": "移除群员失败",
+			})
+		}
+		return
+	}
+
+	err = db.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", groupId, memberId).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "移除群员失败",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"msg": "移除群员成功",
 	})
 }

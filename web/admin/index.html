@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理系统</title>
+    <link rel="stylesheet" href="../css/admin/app.css">
+</head>
+
+<body>
+    <div class="admin-container">
+        <div class="view-tabs">
+            <div class="view-tab active" onclick="switchView('users')">用户列表</div>
+            <div class="view-tab" onclick="switchView('groups')">群组列表</div>
+        </div>
+
+        <div class="table-header">
+            <h1 class="title" style="display: none;">标题占位</h1>
+            <div class="search-box">
+                <input type="search" class="search-input" placeholder="输入关键词搜索..." id="searchInput">
+            </div>
+        </div>
+
+        <table class="user-table">
+            <thead id="tableHeader">
+                <tr>
+                    <th>用户ID</th>
+                    <th>用户名称</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="dataList">
+                <tr class="loading">
+                    <td colspan="3">
+                        <div class="spinner"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="../js/admin/app.js"></script>
+</body>
+
+</html>

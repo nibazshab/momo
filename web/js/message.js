@@ -34,11 +34,7 @@ function handleItemClick(event, itemClass) {
         option.id = 'group-option';
         option.className = 'right';
         option.innerHTML = `<i class="fa-solid fa-bars"></i>`;
-        const exitGroup = document.createElement('span');
-        exitGroup.id = "exit-group";
-        exitGroup.innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i>`;
         chatHeader.appendChild(option);
-        chatHeader.appendChild(exitGroup);
         bindGroupOptionEvents(uid);
     }
 
@@ -51,44 +47,9 @@ function handleItemClick(event, itemClass) {
     }
 }
 
-
 function requestUserConvId(targetId) {
     sendMessage({ target_id: targetId });
 }
-
-async function handleFileUpload(event) {
-    const file = event.target.files[0];
-    if (file) {
-        console.log("Selected file:", file.name);
-        const formData = new FormData();
-        formData.append("file", file);
-        try {
-            const response = await fetch('http://127.0.0.1:8080/api/v1/upload', {
-                method: 'POST',
-                credentials: 'include',
-                body: formData,
-            });
-            const data = await response.json();
-            hideLoading();
-            if (response.ok) {
-                console.log(data.uuid, data.type);
-                if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
-                    chatSocket.send(JSON.stringify({
-                        text: `${data.uuid}.${data.size}kb.${data.name}`,
-                        type: data.type,
-                    }));
-                } else {
-                    console.error('WebSocket 连接未建立或已关闭');
-                }
-            } else {
-                alert(data.error);
-            }
-        } catch (error) {
-            console.error("文件上传错误:", error);
-        }
-    }
-}
-
 
 function setupChatWebSocket(convId) {
 
@@ -178,7 +139,6 @@ userConvIdSocket.onmessage = function (event) {
     console.log("收到服务器消息:", event.data);
     const data = JSON.parse(event.data);
     if (data.conv_id) {
-
         setupChatWebSocket(data.conv_id);
     }
 };
@@ -190,7 +150,6 @@ userConvIdSocket.onclose = function (event) {
 userConvIdSocket.onerror = function (error) {
     console.log("WebSocket 错误:", error);
 };
-
 
 function genChatMessage(messages = []) {
     const form = document.createElement('div');
@@ -243,3 +202,37 @@ function genChatHeader(uid, name, isGroupItem = false, owner) {
     form.innerHTML = `<span class="left"><h3>${name}</h3>${isGroupItem && owner === userId ? '<i class="fa-solid fa-crown"></i>' : ''}<p>${uid}</p></span>`;
     return form;
 }
+
+async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        console.log("Selected file:", file.name);
+        const formData = new FormData();
+        formData.append("file", file);
+        try {
+            const response = await fetch('http://127.0.0.1:8080/api/v1/upload', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData,
+            });
+            const data = await response.json();
+            hideLoading();
+            if (response.ok) {
+                console.log(data.uuid, data.type);
+                if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({
+                        text: `${data.uuid}.${data.size}kb.${data.name}`,
+                        type: data.type,
+                    }));
+                } else {
+                    console.error('WebSocket 连接未建立或已关闭');
+                }
+            } else {
+                alert(data.error);
+            }
+        } catch (error) {
+            console.error("文件上传错误:", error);
+        }
+    }
+}
+
