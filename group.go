@@ -357,6 +357,13 @@ func memberRemove(c *gin.Context) {
 		return
 	}
 
+	if userId != group.OwnerId {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "权限不足",
+		})
+		return
+	}
+
 	err = db.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", groupId, memberId).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
