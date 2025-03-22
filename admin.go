@@ -14,6 +14,7 @@ const defaultPassword = "111111"
 var (
 	timeout    time.Time
 	adminToken = hashPassword(uuid.New().String())
+	cid        string
 )
 
 func routesAdmin(r *gin.Engine) {
@@ -33,6 +34,12 @@ func routesAdmin(r *gin.Engine) {
 
 // get /admin
 func adminPage(c *gin.Context) {
+	_cid, _ := c.Cookie("cid")
+	if _cid != cid {
+		c.FileFromFS("web/admin/login.html", http.FS(web))
+		return
+	}
+
 	if time.Now().After(timeout) {
 		c.FileFromFS("web/admin/login.html", http.FS(web))
 		return
@@ -57,6 +64,16 @@ func adminLogin(c *gin.Context) {
 		})
 		return
 	}
+
+	cid = uuid.New().String()
+	c.SetCookie(
+		"cid", cid,
+		3600,
+		"/admin",
+		"",
+		c.Request.URL.Scheme == "https",
+		true,
+	)
 
 	timeout = time.Now().Add(time.Hour)
 
@@ -163,6 +180,12 @@ func jsonData[T any](model *T, c *gin.Context) bool {
 
 func timeoutMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		_cid, _ := c.Cookie("cid")
+		if _cid != cid {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "未经允许的访问"})
+			return
+		}
+
 		if time.Now().After(timeout) {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "未经允许的访问"})
 			return
