@@ -12,38 +12,41 @@ import (
 var web embed.FS
 
 func indexPage(c *gin.Context) {
-	if checkSession(c, "/login", false) {
+	if !check(c) {
+		c.Redirect(http.StatusFound, "/login")
 		return
 	}
 	c.FileFromFS("web/", http.FS(web))
 }
 
 func loginPage(c *gin.Context) {
-	if checkSession(c, "/", true) {
+	if check(c) {
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 	c.FileFromFS("web/login.html", http.FS(web))
 }
 
 func registerPage(c *gin.Context) {
-	if checkSession(c, "/", true) {
+	if check(c) {
+		c.Redirect(http.StatusFound, "/")
 		return
 	}
 	c.FileFromFS("web/register.html", http.FS(web))
 }
 
-func checkSession(c *gin.Context, redirectPath string, should bool) bool {
-	cookie, err := c.Cookie("session_id")
-	valid := false
-	if err == nil {
-		_, valid = validateSession(cookie)
+func check(c *gin.Context) bool {
+	token := c.GetHeader("Authorization")
+	if token == "" {
+		return false
 	}
 
-	if valid == should {
-		c.Redirect(http.StatusFound, redirectPath)
-		return true
+	_, err := parseToken(token)
+	if err != nil {
+		return false
 	}
-	return false
+
+	return true
 }
 
 func favicon(c *gin.Context) {

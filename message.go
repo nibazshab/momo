@@ -38,7 +38,7 @@ func messageHandler(c *gin.Context) {
 	stringConvId := c.Query("conv_id")
 	if stringConvId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "缺少会话 ID",
+			"error": "缺少会话 Id",
 		})
 		return
 	}
@@ -46,7 +46,7 @@ func messageHandler(c *gin.Context) {
 	convId, err := strconv.Atoi(stringConvId)
 	if err != nil || convId <= 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "会话 ID 无效",
+			"error": "会话 Id 无效",
 		})
 		return
 	}
@@ -130,12 +130,12 @@ func processMessage(message []byte, userId, convId int) error {
 		return fmt.Errorf("empty message content")
 	}
 
-	userName, _ := getNameById(&User{}, userId)
+	err = getObjInfo(&User{})
 
 	newMsg := Msg{
 		ConvId:   convId,
 		UserId:   userId,
-		UserName: userName,
+		UserName: "tmp",
 		FmtTime:  time.Now().Format(time.DateTime),
 		Text:     msg.Text,
 		Type:     msg.Type,
@@ -196,7 +196,7 @@ func convIdHandler(c *gin.Context) {
 
 		if request.TargetId <= 0 {
 			ws.WriteJSON(gin.H{
-				"error": "目标用户 ID 无效",
+				"error": "目标用户 Id 无效",
 			})
 			log.Printf("ConvId request error: invalid target user")
 			continue
@@ -209,7 +209,7 @@ func convIdHandler(c *gin.Context) {
 			Find(&exists).Error
 		if err != nil || !exists {
 			ws.WriteJSON(gin.H{
-				"error": "目标用户 ID 不存在",
+				"error": "目标用户 Id 不存在",
 			})
 			log.Printf("ConvId request error: user not found")
 			continue

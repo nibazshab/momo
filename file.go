@@ -84,7 +84,7 @@ func upFileHandler(c *gin.Context) {
 	fileSize := fileHeader.Size >> 10
 
 	fileRecord := File{
-		UUID:         safeName,
+		Uuid:         safeName,
 		OriginalName: fileHeader.Filename,
 		Type:         fileType,
 		Size:         fileSize,
@@ -100,7 +100,7 @@ func upFileHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
+	c.JSON(http.StatusOK, gin.H{
 		"uuid": safeName,
 		"size": fileSize,
 		"name": fileHeader.Filename,

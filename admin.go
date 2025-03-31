@@ -88,7 +88,7 @@ func showAllUser(c *gin.Context) {
 // get /admin/show_groups
 func showAllGroup(c *gin.Context) {
 	var groups []struct {
-		ID      int    `json:"id"`
+		Id      int    `json:"id"`
 		Name    string `json:"name"`
 		OwnerId int    `json:"owner_id"`
 	}

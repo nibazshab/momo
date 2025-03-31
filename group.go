@@ -2,23 +2,16 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"net/http"
 )
 
-// get /api/v1/group/lists
+// get /api/v1/group/list
 func groupListAsMember(c *gin.Context) {
 	userId := c.MustGet("userId").(int)
 
-	var groups []struct {
-		ID      int    `json:"id"`
-		Name    string `json:"name"`
-		OwnerId int    `json:"owner_id"`
-	}
+	var groups []Group
 
 	err := db.Model(&GroupMember{}).
 		Select("groups.id, groups.name, groups.owner_id").
@@ -26,147 +19,66 @@ func groupListAsMember(c *gin.Context) {
 		Where("group_members.user_id = ?", userId).
 		Find(&groups).Error
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "检索群组失败",
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: e,
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"groups": groups,
-	})
-}
-
-// get /api/v1/group/member/:id
-func groupMember(c *gin.Context) {
-	stringGroupId := c.Param("id")
-	groupId, err := strconv.Atoi(stringGroupId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "id 必须是整数",
-		})
-		return
-	}
-
-	var users []struct {
-		ID   int    `json:"id"`
-		Name string `json:"name"`
-	}
-
-	err = db.Model(&GroupMember{}).
-		Select("users.id, users.name").
-		Joins("JOIN users ON group_members.user_id = users.id").
-		Where("group_members.group_id = ?", groupId).
-		Scan(&users).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "检索用户失败",
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"users": users,
-	})
-}
-
-// get /api/v1/group/info/:id
-func groupInfo(c *gin.Context) {
-	userId := c.MustGet("userId").(int)
-
-	stringGroupId := c.Param("id")
-	groupId, err := strconv.Atoi(stringGroupId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "id 必须是整数",
-		})
-		return
-	}
-
-	groupName, err := getNameById(&Group{}, groupId)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "群组不存在",
-			})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "查找群组失败",
-			})
-		}
-		return
-	}
-
-	var isMember bool
-	var count int64
-	err = db.Model(&GroupMember{}).
-		Where("group_id = ? AND user_id = ?", groupId, userId).
-		Count(&count).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "查找群组失败",
-		})
-		return
-	}
-	isMember = count > 0
-
-	c.JSON(http.StatusOK, gin.H{
-		"name":      groupName,
-		"is_member": isMember,
+	c.JSON(http.StatusOK, resp[[]Group]{
+		Code: http.StatusOK,
+		Data: groups,
 	})
 }
 
 // post /api/v1/group/create
 func groupCreate(c *gin.Context) {
-	userId := c.MustGet("userId").(int)
-
-	var request struct {
-		ID   int    `json:"id" binding:"required"`
-		Name string `json:"name" binding:"required"`
-	}
-	err := c.ShouldBindJSON(&request)
+	var group Group
+	err := c.ShouldBindJSON(&group)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "请求格式无效",
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "input invalid",
 		})
 		return
 	}
 
-	if request.ID < 100000 || request.ID > 999999 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "群组 ID 必须是 6 位数字",
+	if group.Id < 100000 || group.Id > 999999 {
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "id invalid",
 		})
 		return
 	}
 
-	group := Group{
-		ID:      request.ID,
-		Name:    request.Name,
-		OwnerId: userId,
-	}
+	group.OwnerId = c.MustGet("userId").(int)
 
-	err = db.Create(&group).Error
+	err = db.Create(group).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			c.JSON(http.StatusConflict, gin.H{
-				"error": "群组已存在",
+			c.JSON(http.StatusConflict, resp[any]{
+				Code:    http.StatusConflict,
+				Message: "group already exists",
 			})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "创建群组失败",
+			c.JSON(http.StatusInternalServerError, resp[any]{
+				Code:    http.StatusInternalServerError,
+				Message: e,
 			})
 		}
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"msg": "创建群组成功",
+	c.JSON(http.StatusOK, resp[any]{
+		Code:    http.StatusOK,
+		Message: s,
 	})
 }
 
 func (g *Group) AfterCreate(tx *gorm.DB) (err error) {
 	groupMember := GroupMember{
-		GroupId: g.ID,
+		GroupId: g.Id,
 		UserId:  g.OwnerId,
 	}
 
@@ -177,195 +89,272 @@ func (g *Group) AfterCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-// get /api/v1/group/join/:id
-func memberJoin(c *gin.Context) {
-	userId := c.MustGet("userId").(int)
-
-	stringGroupId := c.Param("id")
-	groupId, err := strconv.Atoi(stringGroupId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "id 必须是整数",
-		})
-		return
-	}
-
-	var count int64
-	err = db.Model(&Group{}).
-		Where("id = ?", groupId).
-		Count(&count).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "加入群组失败",
-		})
-		return
-	}
-
-	if count == 0 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "群组不存在",
-		})
-		return
-	}
-
-	var existing int64
-	err = db.Model(&GroupMember{}).
-		Where("group_id = ? AND user_id = ?", groupId, userId).
-		Count(&existing).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "加入群组失败",
-		})
-		return
-	}
-
-	if existing > 0 {
-		c.JSON(http.StatusConflict, gin.H{
-			"error": "已是群组成员",
-		})
-		return
-	}
-
-	member := GroupMember{
-		GroupId: groupId,
-		UserId:  userId,
-	}
-
-	err = db.Create(&member).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "加入群组失败",
-		})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{
-		"msg": "加入群组成功",
-	})
-}
-
-// get /api/v1/group/leave/:id
-func memberLeave(c *gin.Context) {
-	userId := c.MustGet("userId").(int)
-
-	stringGroupId := c.Param("id")
-	groupId, err := strconv.Atoi(stringGroupId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "id 必须是整数",
-		})
-		return
-	}
-
+// post /api/v1/group/info
+func groupInfo(c *gin.Context) {
 	var group Group
-	err = db.Select("owner_id").First(&group, "id = ?", groupId).Error
+	err := c.ShouldBindJSON(&group)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "input invalid",
+		})
+		return
+	}
+
+	err = getObjInfo(&group)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "群组不存在",
+			c.JSON(http.StatusNotFound, resp[any]{
+				Code:    http.StatusNotFound,
+				Message: "group invalid",
 			})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "退出群组失败",
+			c.JSON(http.StatusInternalServerError, resp[any]{
+				Code:    http.StatusInternalServerError,
+				Message: e,
 			})
 		}
 		return
 	}
 
+	userId := c.MustGet("userId").(int)
+
+	var isMember string
+	err = validateGroupMember(group.Id, userId)
+	if err != nil {
+		isMember = "n"
+	} else {
+		isMember = "y"
+	}
+
+	c.JSON(http.StatusOK, resp[Group]{
+		Code:    http.StatusOK,
+		Message: isMember,
+		Data:    group,
+	})
+}
+
+// post /api/v1/group/join
+func groupJoin(c *gin.Context) {
+	var groupMember GroupMember
+	err := c.ShouldBindJSON(&groupMember)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "input invalid",
+		})
+		return
+	}
+
+	err = validateGroup(groupMember.GroupId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	groupMember.UserId = c.MustGet("userId").(int)
+
+	err = validateGroupMember(groupMember.GroupId, groupMember.UserId)
+	if err == nil {
+		c.JSON(http.StatusConflict, resp[any]{
+			Code:    http.StatusConflict,
+			Message: "already joined",
+		})
+		return
+	}
+
+	err = db.Create(groupMember).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: e,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp[any]{
+		Code:    http.StatusOK,
+		Message: s,
+	})
+}
+
+// post /api/v1/group/member
+func memberList(c *gin.Context) {
+	var groupMember GroupMember
+	err := c.ShouldBindJSON(&groupMember)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "input invalid",
+		})
+		return
+	}
+	groupMember.UserId = c.MustGet("userId").(int)
+
+	err = validateGroupMember(groupMember.GroupId, groupMember.UserId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	var users []User
+
+	err = db.Model(groupMember).
+		Select("users.id, users.name").
+		Joins("JOIN users ON users.id = group_members.user_id").
+		Where("group_members.group_id = ?", groupMember.GroupId).
+		Scan(&users).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: e,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp[[]User]{
+		Code: http.StatusOK,
+		Data: users,
+	})
+}
+
+// post /api/v1/group/leave
+func memberLeave(c *gin.Context) {
+	var groupMember GroupMember
+	err := c.ShouldBindJSON(&groupMember)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "input invalid",
+		})
+		return
+	}
+
+	err = validateGroupMember(groupMember.GroupId, groupMember.UserId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	groupMember.UserId = c.MustGet("userId").(int)
+
+	group := Group{
+		Id: groupMember.GroupId,
+	}
+	err = getObjInfo(&group)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: e,
+		})
+		return
+	}
+
 	err = db.Transaction(func(tx *gorm.DB) error {
-		if group.OwnerId == userId {
-			err = tx.Delete(&Group{}, "id = ?", groupId).Error
+		if groupMember.UserId == group.OwnerId {
+			err = tx.Delete(group).Error
 			if err != nil {
 				return err
 			}
-
-			err = tx.Where("conv_id = ?", groupId).Delete(&Msg{}).Error
+			err = tx.Where("conv_id = ?", group.Id).Delete(&Msg{}).Error
 			if err != nil {
 				return err
 			}
 		} else {
-			result := tx.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", groupId, userId)
-
-			if result.Error != nil {
-				return result.Error
-			}
-
-			if result.RowsAffected == 0 {
-				return fmt.Errorf("0")
+			err = tx.Delete(groupMember).Error
+			if err != nil {
+				return err
 			}
 		}
 		return nil
 	})
 	if err != nil {
-		if err.Error() == "0" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "不是群组成员",
-			})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "退出群组失败",
-			})
-		}
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: e,
+		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "退出群组成功",
+	c.JSON(http.StatusOK, resp[any]{
+		Code:    http.StatusOK,
+		Message: s,
 	})
 }
 
-// get /api/v1/group/remove/:gid/:mid
+// post /api/v1/group/remove
 func memberRemove(c *gin.Context) {
-	userId := c.MustGet("userId").(int)
-
-	stringGroupId := c.Param("gid")
-	stringMemberId := c.Param("mid")
-	groupId, err := strconv.Atoi(stringGroupId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "id 必须是整数",
-		})
-		return
+	var removeUser struct {
+		Gid int `json:"gid"`
+		Uid int `json:"uid"`
 	}
-	memberId, err := strconv.Atoi(stringMemberId)
+
+	err := c.ShouldBindJSON(&removeUser)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "id 必须是整数",
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "input invalid",
 		})
 		return
 	}
 
-	if memberId == userId {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "不能移除自己",
-		})
-		return
+	group := Group{
+		Id: removeUser.Gid,
 	}
-
-	var group Group
-	err = db.Select("owner_id").First(&group, "id = ?", groupId).Error
+	err = getObjInfo(&group)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "群组不存在",
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			c.JSON(http.StatusConflict, resp[any]{
+				Code:    http.StatusConflict,
+				Message: "group invalid",
 			})
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "移除群员失败",
+			c.JSON(http.StatusInternalServerError, resp[any]{
+				Code:    http.StatusInternalServerError,
+				Message: e,
 			})
 		}
 		return
 	}
 
-	err = db.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", groupId, memberId).Error
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "移除群员失败",
+	userId := c.MustGet("userId").(int)
+
+	if userId != group.OwnerId {
+		c.JSON(http.StatusForbidden, resp[any]{
+			Code:    http.StatusForbidden,
+			Message: "permission denied",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"msg": "移除群员成功",
+	if removeUser.Uid == userId {
+		c.JSON(http.StatusBadRequest, resp[any]{
+			Code:    http.StatusBadRequest,
+			Message: "user invalid",
+		})
+		return
+	}
+
+	err = db.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", removeUser.Gid, removeUser.Uid).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: e,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp[any]{
+		Code:    http.StatusOK,
+		Message: s,
 	})
 }

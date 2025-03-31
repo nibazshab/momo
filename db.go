@@ -11,55 +11,6 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-var db *gorm.DB
-
-type User struct {
-	ID       int    `json:"id" gorm:"primaryKey"`
-	Name     string `json:"name" gorm:"not null"`
-	Password string `json:"password" gorm:"size:64;not null"`
-}
-
-type Session struct {
-	ID        string    `json:"id" gorm:"primaryKey;size:36"`
-	UserId    int       `json:"user_id"`
-	ExpiresAt time.Time `json:"expires_at" gorm:"not null"`
-	User      User      `gorm:"constraint:OnDelete:CASCADE;"`
-}
-
-type Msg struct {
-	ID       uint      `gorm:"primaryKey;auto_increment"`
-	ConvId   int       `gorm:"not null"`
-	UserId   int       `json:"user_id"`
-	UserName string    `json:"user_name" gorm:"not null"`
-	Time     time.Time `gorm:"autoCreateTime"`
-	FmtTime  string    `json:"time" gorm:"not null"`
-	Text     string    `json:"text" gorm:"not null"`
-	Type     int       `json:"type" gorm:"not null"`
-	User     User      `gorm:"constraint:OnDelete:CASCADE;"`
-}
-
-type Group struct {
-	ID      int    `json:"id" gorm:"primaryKey"`
-	OwnerId int    `json:"owner_id"`
-	Name    string `json:"name" gorm:"not null"`
-	Owner   User   `gorm:"foreignKey:OwnerId"`
-	User    []User `gorm:"many2many:group_members;constraint:OnDelete:CASCADE;"`
-}
-
-type GroupMember struct {
-	GroupId int `json:"group_id"`
-	UserId  int `json:"user_id"`
-}
-
-type File struct {
-	UUID         string `json:"uuid" gorm:"primaryKey;size:36"`
-	OriginalName string `json:"original_name" gorm:"not null"`
-	Type         int    `json:"type" gorm:"not null"`
-	Size         int64  `json:"size" gorm:"not null"`
-	UserId       int    `json:"user_id"`
-	User         User   `gorm:"constraint:OnDelete:CASCADE;"`
-}
-
 const (
 	dbUser = "root"
 	dbPass = "haosql"
@@ -67,6 +18,52 @@ const (
 	dbPort = 3306
 	dbName = "test" // "momo"
 )
+
+var db *gorm.DB
+
+type User struct {
+	Id       int    `json:"id" gorm:"primaryKey"`
+	Name     string `json:"name,omitempty" gorm:"not null"`
+	Password string `json:"password,omitempty" gorm:"size:64;not null"`
+}
+
+type Secret struct {
+	Key string `gorm:"not null;size:16"`
+}
+
+type Msg struct {
+	Id       uint      `gorm:"primaryKey;auto_increment"`
+	ConvId   int       `gorm:"not null"`
+	UserId   int       `json:"user_id"`
+	UserName string    `json:"user_name" gorm:"not null"`
+	Time     time.Time `gorm:"autoCreateTime"`
+	FmtTime  string    `json:"time" gorm:"not null"`
+	Text     string    `json:"text" gorm:"not null"`
+	Type     int       `json:"type" gorm:"not null"`
+	User     *User     `gorm:"constraint:OnDelete:CASCADE;"`
+}
+
+type Group struct {
+	Id      int    `json:"id" gorm:"primaryKey"`
+	OwnerId int    `json:"owner_id,omitempty"`
+	Name    string `json:"name,omitempty" gorm:"not null"`
+	Owner   *User  `json:",omitempty" gorm:"foreignKey:OwnerId"`
+	User    []User `json:",omitempty" gorm:"many2many:group_members;constraint:OnDelete:CASCADE;"`
+}
+
+type GroupMember struct {
+	GroupId int `json:"group_id,omitempty"`
+	UserId  int `json:"user_id,omitempty"`
+}
+
+type File struct {
+	Uuid         string `json:"uuid" gorm:"primaryKey;size:36"`
+	OriginalName string `json:"original_name" gorm:"not null"`
+	Type         int    `json:"type" gorm:"not null"`
+	Size         int64  `json:"size" gorm:"not null"`
+	UserId       int    `json:"user_id"`
+	User         *User  `gorm:"constraint:OnDelete:CASCADE;"`
+}
 
 func initDb() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -96,7 +93,7 @@ func initDb() {
 
 	err = db.AutoMigrate(
 		&User{},
-		&Session{},
+		&Secret{},
 		&Msg{},
 		&Group{},
 		&File{},
