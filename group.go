@@ -2,9 +2,11 @@ package main
 
 import (
 	"errors"
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 // get /api/v1/group/list
@@ -53,6 +55,7 @@ func groupCreate(c *gin.Context) {
 	}
 
 	group.OwnerId = c.MustGet("userId").(int)
+	group.Name = strings.TrimSpace(group.Name)
 
 	err = db.Create(group).Error
 	if err != nil {

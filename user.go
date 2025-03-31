@@ -195,9 +195,6 @@ func resetName(c *gin.Context) {
 
 // post /api/v1/user/repassword
 func resetPassword(c *gin.Context) {
-	var user User
-	user.Id = c.MustGet("userId").(int)
-
 	var password struct {
 		Old string `json:"old_password"`
 		New string `json:"new_password"`
@@ -210,6 +207,9 @@ func resetPassword(c *gin.Context) {
 		})
 		return
 	}
+
+	var user User
+	user.Id = c.MustGet("userId").(int)
 
 	err = db.Select("password").First(&user).Error
 	if err != nil {

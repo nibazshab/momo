@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"net/http"
 	"os"
@@ -15,20 +14,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
-
-const (
-	s = "success"
-	e = "error"
-)
-
-var jwtSecret []byte
-
-type resp[T any] struct {
-	Code    int    `json:"code"`
-	Message string `json:"message,omitempty"`
-	Data    T      `json:"data,omitempty"`
-}
 
 func main() {
 	initDb()
@@ -42,8 +29,6 @@ func run() {
 	// r := gin.New()
 	r := gin.Default()
 	r.Use(cors())
-
-	routesAdmin(r)
 
 	page := r.Group("/")
 	page.Use(cacheControl())
@@ -112,6 +97,24 @@ func run() {
 	}
 }
 
+const (
+	s = "success"
+	e = "error"
+)
+
+var jwtSecret []byte
+
+type resp[T any] struct {
+	Code    int    `json:"code"`
+	Message string `json:"message,omitempty"`
+	Data    T      `json:"data,omitempty"`
+}
+
+type claims struct {
+	Id int `json:"id"`
+	jwt.RegisteredClaims
+}
+
 func cors() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		origin := c.Request.Header.Get("Origin")
@@ -151,11 +154,6 @@ func auth(c *gin.Context) {
 	c.Next()
 }
 
-type claims struct {
-	Id int `json:"id"`
-	jwt.RegisteredClaims
-}
-
 func checkPassword(password, hash string) bool {
 	return hashPassword(password) == hash
 }
@@ -170,13 +168,7 @@ func hashPassword(password string) string {
 }
 
 func getObjInfo[T *User | *Group](model T) error {
-	return db.Select("*").First(model).Error
-}
-
-func generateSecret() string {
-	key := make([]byte, 8)
-	rand.Read(key)
-	return hex.EncodeToString(key[:])
+	return db.Model(model).First(model).Error
 }
 
 func initSecret() {
@@ -187,6 +179,12 @@ func initSecret() {
 		db.Create(secret)
 	}
 	jwtSecret = []byte(secret.Key)
+}
+
+func generateSecret() string {
+	key := make([]byte, 8)
+	rand.Read(key)
+	return hex.EncodeToString(key[:])
 }
 
 func generateToken(uid int) (string, error) {
