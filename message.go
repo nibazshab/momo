@@ -130,12 +130,15 @@ func processMessage(message []byte, userId, convId int) error {
 		return fmt.Errorf("empty message content")
 	}
 
-	err = getObjInfo(&User{})
+	user := User{
+		Id: userId,
+	}
+	err = getObjInfo(&user)
 
 	newMsg := Msg{
 		ConvId:   convId,
-		UserId:   userId,
-		UserName: "tmp",
+		UserId:   user.Id,
+		UserName: user.Name,
 		FmtTime:  time.Now().Format(time.DateTime),
 		Text:     msg.Text,
 		Type:     msg.Type,

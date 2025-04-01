@@ -40,20 +40,20 @@ type Msg struct {
 	FmtTime  string    `json:"time" gorm:"not null"`
 	Text     string    `json:"text" gorm:"not null"`
 	Type     int       `json:"type" gorm:"not null"`
-	User     *User     `gorm:"constraint:OnDelete:CASCADE;"`
+	User     User      `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 type Group struct {
 	Id      int    `json:"id" gorm:"primaryKey"`
 	OwnerId int    `json:"owner_id,omitempty"`
 	Name    string `json:"name,omitempty" gorm:"not null"`
-	Owner   *User  `json:",omitempty" gorm:"foreignKey:OwnerId"`
-	User    []User `json:",omitempty" gorm:"many2many:group_members;constraint:OnDelete:CASCADE;"`
+	Owner   User   `json:"-" gorm:"foreignKey:OwnerId"`
+	User    []User `json:"-" gorm:"many2many:group_members;constraint:OnDelete:CASCADE;"`
 }
 
 type GroupMember struct {
-	GroupId int `json:"group_id,omitempty"`
-	UserId  int `json:"user_id,omitempty"`
+	GroupId int `json:"group_id"`
+	UserId  int `json:"user_id"`
 }
 
 type File struct {
@@ -62,7 +62,7 @@ type File struct {
 	Type         int    `json:"type" gorm:"not null"`
 	Size         int64  `json:"size" gorm:"not null"`
 	UserId       int    `json:"user_id"`
-	User         *User  `gorm:"constraint:OnDelete:CASCADE;"`
+	User         User   `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 func initDb() {

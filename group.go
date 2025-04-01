@@ -296,12 +296,8 @@ func memberLeave(c *gin.Context) {
 
 // post /api/v1/group/remove
 func memberRemove(c *gin.Context) {
-	var removeUser struct {
-		Gid int `json:"gid"`
-		Uid int `json:"uid"`
-	}
-
-	err := c.ShouldBindJSON(&removeUser)
+	var groupMember GroupMember
+	err := c.ShouldBindJSON(&groupMember)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, resp[any]{
 			Code:    http.StatusBadRequest,
@@ -311,7 +307,7 @@ func memberRemove(c *gin.Context) {
 	}
 
 	group := Group{
-		Id: removeUser.Gid,
+		Id: groupMember.GroupId,
 	}
 	err = getObjInfo(&group)
 	if err != nil {
@@ -329,6 +325,15 @@ func memberRemove(c *gin.Context) {
 		return
 	}
 
+	err = validateGroupMember(groupMember.GroupId, groupMember.UserId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, resp[any]{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		})
+		return
+	}
+
 	userId := c.MustGet("userId").(int)
 
 	if userId != group.OwnerId {
@@ -339,15 +344,15 @@ func memberRemove(c *gin.Context) {
 		return
 	}
 
-	if removeUser.Uid == userId {
+	if userId == groupMember.UserId {
 		c.JSON(http.StatusBadRequest, resp[any]{
 			Code:    http.StatusBadRequest,
-			Message: "user invalid",
+			Message: "yourself invalid",
 		})
 		return
 	}
 
-	err = db.Delete(&GroupMember{}, "group_id = ? AND user_id = ?", removeUser.Gid, removeUser.Uid).Error
+	err = db.Delete(groupMember).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, resp[any]{
 			Code:    http.StatusInternalServerError,
