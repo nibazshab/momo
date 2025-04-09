@@ -40,27 +40,13 @@ nextStep.addEventListener('click', function () {
             name: name
         })
     })
-        .then(response => {
+        .then(response => response.json())
+        .then(data => {
             hideLoading();
-            if (response.ok) {
+            if (data.msg == "注册成功") {
                 window.location.href = "/";
-                return response.json();
             } else {
-
-                response.json().then(data => {
-                    alert(data.error);
-                }).catch(() => {
-                    alert(`Login failed with status code: ${response.status}`);
-                });
-                throw new Error(`Login failed with status code: ${response.status}`);
+                alert(data.error);
             }
         })
-        .then(data => {
-            console.log("Successfully logged in!", data);
-        })
-        .catch(error => {
-            hideLoading();
-            console.error('Error fetching data:', error);
-
-        });
 });

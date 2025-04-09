@@ -24,16 +24,13 @@ nextStep.addEventListener('click', function () {
         credentials: 'include',
         body: JSON.stringify({ id: parseInt(phone), Password: password })
     })
-        .then(response => {
+        .then(response => response.json())
+        .then(data => {
             hideLoading();
-            if (response.ok) {
+            if (data.msg == "登陆成功") {
                 window.location.href = "/";
-                return response.json();
+            } else {
+                alert(data.error);
             }
-            else {
-                response.json().then(data => {
-                    alert(data.error);
-                });
-            }
-        });
+        })
 });

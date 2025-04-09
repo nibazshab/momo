@@ -100,46 +100,53 @@ function renderTable() {
     }).join('');
 }
 
-function handleGroupDelete(groupId) {
-    if (confirm(`确定要删除群组 ${groupId} 吗？该操作不可恢复！`)) {
-
-        fetch('http://127.0.0.1:8080/admin/delete_group', {
-            method: 'POST',
-            credentials: 'include',
-            body: JSON.stringify({ id: groupId })
-        })
-            .then(response => {
-                hideLoading();
-                if (!response.ok) {
-                    response.json().then(data => {
-                        alert(data.error);
-                    });
-                }
+async function handleDelete(userId) {
+    if (confirm(`确定要删除用户 ${userId} 吗？`)) {
+        try {
+            const response = await fetch('http://127.0.0.1:8080/admin/delete_user', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: userId })
             });
 
-        alert(`群组 ${groupId} 已删除`);
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || '删除失败');
+            }
 
-        switchView('groups');
+            alert(`用户 ${userId} 已删除`);
+            await switchView('users');
+        } catch (error) {
+            alert(error.message);
+        }
     }
 }
 
-function handleDelete(userId) {
-    if (confirm(`确定要删除用户 ${userId} 吗？`)) {
-        fetch('http://127.0.0.1:8080/admin/delete_user', {
-            method: 'POST',
-            credentials: 'include',
-            body: JSON.stringify({ id: userId })
-        })
-            .then(response => {
-                hideLoading();
-                if (!response.ok) {
-                    response.json().then(data => {
-                        alert(data.error);
-                    });
-                }
+async function handleGroupDelete(groupId) {
+    if (confirm(`确定要删除群组 ${groupId} 吗？该操作不可恢复！`)) {
+        try {
+            const response = await fetch('http://127.0.0.1:8080/admin/delete_group', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: groupId })
             });
 
-        alert(`用户 ${userId} 已删除`);
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || '删除群组失败');
+            }
+
+            alert(`群组 ${groupId} 已删除`);
+            await switchView('groups');
+        } catch (error) {
+            alert(error.message);
+        }
     }
 }
 
@@ -160,6 +167,8 @@ function handleResetPassword(userId) {
             });
 
         alert(`用户 ${userId} 的密码已重置`);
+
+        switchView('users');
     }
 }
 

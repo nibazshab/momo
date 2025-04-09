@@ -229,7 +229,7 @@ function logoutListener() {
             });
             const data = await response.json();
             hideLoading();
-            if (response.ok) {
+            if (data.msg == "退出登陆成功") {
                 window.location.href = '/login';
             } else {
                 alert(data.error);
